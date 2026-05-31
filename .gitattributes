@@ -1,0 +1,12 @@
+# 改行コードを LF に統一する（.editorconfig の end_of_line = lf と整合）。
+# Windows の autocrlf による CRLF 混入と、それに伴う dotnet format 差分を防ぐ。
+* text=auto eol=lf
+
+# バイナリ（改行変換しない）
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.pfx  binary
