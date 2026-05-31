@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+artifacts/
+TestResults/
+coverage/
+*.trx
+
+# Node / Next.js
+node_modules/
+apps/admin-web/.next/
+apps/admin-web/out/
+apps/admin-web/dist/
+
+# 環境・シークレット（コミット禁止）
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+*.pfx
+*.key
+
+# OS / IDE
+.DS_Store
+.idea/

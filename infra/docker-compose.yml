@@ -1,0 +1,27 @@
+# ローカル開発用ミドルウェア。シークレットは .env から読み込む（直書き禁止）。
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: matchops
+      POSTGRES_USER: ${POSTGRES_USER:-matchops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  metabase:
+    image: metabase/metabase:latest
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
