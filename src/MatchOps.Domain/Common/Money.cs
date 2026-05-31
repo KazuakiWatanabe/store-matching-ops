@@ -9,6 +9,8 @@
 // </summary>
 // -----------------------------------------------------------------------------
 
+using System.Globalization;
+
 namespace MatchOps.Domain.Common;
 
 /// <summary>
@@ -80,9 +82,9 @@ public readonly record struct Money
         return new Money(left.Amount - right.Amount, left.Currency);
     }
 
-    /// <summary>「金額 通貨」形式の文字列に整形する。</summary>
+    /// <summary>「金額 通貨」形式の文字列に整形する（不変カルチャ）。</summary>
     /// <returns>金額の文字列表現。</returns>
-    public override string ToString() => $"{Amount} {Currency}";
+    public override string ToString() => $"{Amount.ToString(CultureInfo.InvariantCulture)} {Currency}";
 
     private static void EnsureSameCurrency(Money left, Money right)
     {
@@ -93,20 +95,5 @@ public readonly record struct Money
     }
 
     private static bool IsValidCurrencyCode(string? code)
-    {
-        if (code is null || code.Length != 3)
-        {
-            return false;
-        }
-
-        foreach (char c in code)
-        {
-            if (c is < 'A' or > 'Z')
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+        => code is { Length: 3 } && code.All(char.IsAsciiLetterUpper);
 }

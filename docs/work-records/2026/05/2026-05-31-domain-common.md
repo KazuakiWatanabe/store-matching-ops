@@ -31,6 +31,20 @@
 - `dotnet list package --vulnerable` → 脆弱性ゼロ（新規 NuGet 追加なし。Domain は BCL のみ）。
 - PII/シークレット: 例外メッセージは数値・通貨のみで PII・秘密情報なし。
 
+## レビュー反映 (post-review, code-review --effort high)
+高 effort のレビューで挙がった修正推奨を反映。
+- **`Money.ToString()` を `InvariantCulture` に固定**（`Fix 1`）。`$"{Amount}"` 補間が `CurrentCulture` 依存で、de-DE 等で `"1234,5"` になる不整合を解消（`MatchScore` と整合）。カルチャ切替テストを追加。
+- **浮動小数許容を `MatchScore.From` に集約**（`Fix 2`/altitude）。`ScoreBreakdown` 独自の上限 ε クランプを廃し、±`1e-9` の境界吸収を `MatchScore.From` の単一責務へ。Stage 0.5 のスコアエンジンも同じ許容を再利用できる。両側クランプのテストを追加。
+- **`IsValidCurrencyCode` を `char.IsAsciiLetterUpper` で簡素化**（`Fix 4`）。手書きの `'A'..'Z'` ループを BCL 述語に置換。
+- **`ScoreBreakdown.Contributions` を自動プロパティ化**（`Fix 5`）。冗長なバッキングフィールドを除去し `Total` と一貫。
+- 反映後: build -warnaserror 0/0、全 46 テスト緑、**Domain カバレッジ line/branch ともに 100%**、format 差分なし。
+
+### レビューで「対応不要」と判断した項目
+- `ScoreBreakdown` の値等価なし（`sealed class` は辞書 record の参照比較回避のため意図的）。
+- `Money` は JPY のみ小数禁止（v0 は JPY 前提の意図的絞り込み）。
+- ID 型6種の重複は CLAUDE.md §6.2/§6.3 が要求する規約（§4.2 の無断抽象化禁止に抵触するため統合しない）。
+- `default(Money)` の null 通貨は record struct の宿命。今回は据え置き（必要なら将来 EnsureSameCurrency に null ガード）。
+
 ## 未解決事項・次アクション
 - Stage 0.3（`002_customer_and_activity`）: Customers / Activity の Aggregate とセグメント方針。
 - `IClock` は Stage 0.7（Application UseCase）で定義予定。

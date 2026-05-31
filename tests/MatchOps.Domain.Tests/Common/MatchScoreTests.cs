@@ -33,6 +33,22 @@ public class MatchScoreTests
     }
 
     [Fact]
+    public void From_SlightlyAboveOneWithinTolerance_ClampsToOne()
+    {
+        var score = MatchScore.From(1d + 5e-10);
+
+        Assert.Equal(1d, score.Value);
+    }
+
+    [Fact]
+    public void From_SlightlyBelowZeroWithinTolerance_ClampsToZero()
+    {
+        var score = MatchScore.From(-5e-10);
+
+        Assert.Equal(0d, score.Value);
+    }
+
+    [Fact]
     public void Equality_SameValue_AreEqual()
     {
         Assert.Equal(MatchScore.From(0.42d), MatchScore.From(0.42d));

@@ -1,3 +1,4 @@
+using System.Globalization;
 using MatchOps.Domain.Common;
 
 namespace MatchOps.Domain.Tests.Common;
@@ -95,5 +96,22 @@ public class MoneyTests
     public void ToString_ReturnsAmountAndCurrency()
     {
         Assert.Equal("5000 JPY", Money.Jpy(5000m).ToString());
+    }
+
+    [Fact]
+    public void ToString_WithFraction_UsesInvariantCulture_RegardlessOfCurrentCulture()
+    {
+        CultureInfo original = CultureInfo.CurrentCulture;
+        try
+        {
+            // 小数点にカンマを使うカルチャでも、表現は不変カルチャ（ピリオド）に固定される。
+            CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+
+            Assert.Equal("1234.5 USD", Money.Of(1234.5m, "USD").ToString());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
     }
 }

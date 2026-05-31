@@ -19,6 +19,9 @@ namespace MatchOps.Domain.Common;
 /// </summary>
 public readonly record struct MatchScore
 {
+    /// <summary>境界での浮動小数累積誤差を吸収する許容誤差。</summary>
+    private const double Tolerance = 1e-9;
+
     private MatchScore(double value) => Value = value;
 
     /// <summary>スコア 0（最小値）。</summary>
@@ -29,11 +32,13 @@ public readonly record struct MatchScore
 
     /// <summary>
     /// スコア値を検証して <see cref="MatchScore"/> を生成する。
+    /// 重みの再正規化や寄与値の合算で生じる僅かな浮動小数誤差（±<c>1e-9</c>）は
+    /// 0〜1 にクランプして吸収する。これを超える逸脱は不正値として拒否する。
     /// </summary>
     /// <param name="value">0〜1 の範囲のスコア値。</param>
     /// <returns>生成された <see cref="MatchScore"/>。</returns>
     /// <exception cref="DomainException">
-    /// 値が NaN・無限大、または 0〜1 の範囲外の場合。
+    /// 値が NaN・無限大、または許容誤差を超えて 0〜1 の範囲外の場合。
     /// </exception>
     public static MatchScore From(double value)
     {
@@ -42,9 +47,17 @@ public readonly record struct MatchScore
             throw new DomainException($"スコアが有効な数値ではありません: {value}");
         }
 
-        if (value < 0d || value > 1d)
+        if (value < 0d)
         {
-            throw new DomainException($"スコアは 0〜1 の範囲で指定してください: {value}");
+            value = value >= -Tolerance
+                ? 0d
+                : throw new DomainException($"スコアは 0〜1 の範囲で指定してください: {value}");
+        }
+        else if (value > 1d)
+        {
+            value = value <= 1d + Tolerance
+                ? 1d
+                : throw new DomainException($"スコアは 0〜1 の範囲で指定してください: {value}");
         }
 
         return new MatchScore(value);

@@ -17,19 +17,14 @@ namespace MatchOps.Domain.Common;
 /// </summary>
 public sealed class ScoreBreakdown
 {
-    /// <summary>浮動小数の累積誤差を吸収するための許容誤差。</summary>
-    private const double Epsilon = 1e-9;
-
-    private readonly IReadOnlyDictionary<string, double> _contributions;
-
     private ScoreBreakdown(IReadOnlyDictionary<string, double> contributions, MatchScore total)
     {
-        _contributions = contributions;
+        Contributions = contributions;
         Total = total;
     }
 
     /// <summary>項目名 → 寄与値（0〜1）の内訳。</summary>
-    public IReadOnlyDictionary<string, double> Contributions => _contributions;
+    public IReadOnlyDictionary<string, double> Contributions { get; }
 
     /// <summary>寄与値の総和から導出した合計スコア。常に内訳と整合する。</summary>
     public MatchScore Total { get; }
@@ -76,12 +71,7 @@ public sealed class ScoreBreakdown
         }
 
         // 各寄与値は 0〜1 に検証済みのため総和は常に 0 以上。
-        // 浮動小数の累積誤差で僅かに 1 を超えた場合のみ 1 にクランプする。
-        if (sum > 1d && sum <= 1d + Epsilon)
-        {
-            sum = 1d;
-        }
-
+        // 境界での浮動小数累積誤差（僅かに 1 を超える等）の吸収は MatchScore.From が担う。
         return new ScoreBreakdown(snapshot, MatchScore.From(sum));
     }
 }
