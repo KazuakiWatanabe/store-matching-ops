@@ -12,7 +12,17 @@
 - 欠損項目は重みから除外し、残り項目で動的に再正規化する（段階的スコアリング）。
 - 機械学習の導入は別 ADR を起票してから（データ蓄積後に検討）。
 
+## v0 実装詳細（Stage 0.6 反映）
+- 項目キー（`ScoringFactors`）: `dormancy` / `visit_cycle_deviation` / `slot_day_time_match`。
+- 既定重み（`ScoringPolicy.CreateV0Default`）: 0.40 / 0.35 / 0.25。**コードに直書きせず設定から注入**し、`ScoringPolicy.Create` は与えた重みを合計 1 に正規化する（相対値でも可・各重みは正）。
+- 入力（`ScoreInputs`）は各項目 0〜1 の正規化済み特徴量。欠損項目は含めない。
+- 動的再正規化: 入力に存在する項目のみで重みを再正規化（`weight_i / Σ available`）し、寄与 = 値 × 再正規化重み。合計は常に 0〜1（境界の浮動小数誤差は `MatchScore.From` が吸収）。
+- 全項目欠損時は合計 0（`MatchScore.Zero`）の空内訳とする（候補除外はエンジン/上位の判断に委ねる）。
+- `ScoreBreakdown` に各項目の寄与を保持し、合計は `MatchScore` と整合（説明性・提案理由生成 009 に利用）。
+- 特徴量の抽出・正規化は Application/Infrastructure が担い、Domain は算出済みの値のみ受け取る。
+
 ## 影響
 - 提案理由が常に説明可能（`ScoreBreakdown`）。
 - 重みの調整が容易（設定変更）。
 - 精度の上限はあるが、増分実証（ADR-0007）で効果を確認しながら拡張する。
+- 通知疲れペナルティ等の追加項目は重みを足すだけで拡張でき、再正規化が自動で働く。
