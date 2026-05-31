@@ -21,3 +21,8 @@ csharp_using_directive_placement = outside_namespace:warning
 csharp_style_namespace_declarations = file_scoped:warning
 dotnet_style_qualification_for_field = false:warning
 csharp_prefer_braces = true:warning
+
+# EF Core が生成するマイグレーションは生成コードとして扱い、
+# スタイル/ドキュメント規則の対象外にする（CLAUDE.md §5.4）。
+[**/Migrations/*.cs]
+generated_code = true
