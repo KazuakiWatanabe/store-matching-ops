@@ -20,8 +20,8 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
-  <!-- テストプロジェクトは XML コメント必須を緩和 -->
-  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+  <!-- テストプロジェクト（*.Tests / *.IntegrationTests）は XML コメント必須を緩和 -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 </Project>
