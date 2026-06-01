@@ -59,6 +59,9 @@ public sealed class MatchOpsDbContext : DbContext
     /// <summary>Outbox 配信メッセージ。</summary>
     public DbSet<OutboxMessageEntity> OutboxMessages => Set<OutboxMessageEntity>();
 
+    /// <summary>配信ログ。</summary>
+    public DbSet<NotificationLogEntry> NotificationLogs => Set<NotificationLogEntry>();
+
     /// <summary>クエリフィルタで照合する現在のテナント（未解決時は既定値＝該当なし）。</summary>
     internal TenantId CurrentTenant => _tenantContext.CurrentTenantId ?? default;
 
@@ -89,5 +92,6 @@ public sealed class MatchOpsDbContext : DbContext
         modelBuilder.Entity<MatchingCampaign>().HasQueryFilter(campaign => campaign.TenantId == CurrentTenant);
         modelBuilder.Entity<AuditLogEntry>().HasQueryFilter(entry => entry.TenantId == CurrentTenant);
         modelBuilder.Entity<OutboxMessageEntity>().HasQueryFilter(message => message.TenantId == CurrentTenant);
+        modelBuilder.Entity<NotificationLogEntry>().HasQueryFilter(log => log.TenantId == CurrentTenant);
     }
 }

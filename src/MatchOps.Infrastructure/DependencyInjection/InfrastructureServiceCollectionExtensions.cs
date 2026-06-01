@@ -12,12 +12,16 @@
 using MatchOps.Application.Common;
 using MatchOps.Application.Matching;
 using MatchOps.Application.Notifications;
+using MatchOps.Application.Tenancy;
 using MatchOps.Infrastructure.Ai;
 using MatchOps.Infrastructure.Matching;
 using MatchOps.Infrastructure.Notifications;
 using MatchOps.Infrastructure.Persistence;
+using MatchOps.Infrastructure.Tenancy;
+using MatchOps.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using AiApp = MatchOps.Application.Ai;
 
@@ -37,6 +41,12 @@ public static class InfrastructureServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
+        // 時刻源（Api・Worker 共通, CLAUDE.md §10.4）。
+        services.AddSingleton<IClock, SystemClock>();
+
+        // テナントコンテキストの既定（背景処理＝テナント未解決）。Api は RequestContext を別途登録するため上書きしない。
+        services.TryAddScoped<ITenantContext, NullTenantContext>();
+
         // 永続化（PostgreSQL）。接続文字列は設定（環境変数/Secrets）から注入する。
         // 未設定でもアプリが起動できるよう、その場合は接続文字列を遅延（クエリ実行時に解決）する。
         string? connectionString = configuration.GetConnectionString("MatchOps");
@@ -54,6 +64,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IMatchingCampaignRepository, EfMatchingCampaignRepository>();
         services.AddScoped<IOutboxWriter, EfOutboxWriter>();
+
+        // Outbox ディスパッチ（配信実装・配信可否・ディスパッチャ）。Phase 0 の配信はログ出力スタブ。
+        services.Configure<OutboxOptions>(configuration.GetSection(OutboxOptions.SectionName));
+        services.AddScoped<INotificationSender, LoggingNotificationSender>();
+        services.AddScoped<INotificationEligibility, CustomerNotificationEligibility>();
+        services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
 
         // マッチングのスコアリング重み・頻度ポリシー（設定）と候補ソース（Phase 1 まで暫定）。
         services.Configure<MatchingOptions>(configuration.GetSection(MatchingOptions.SectionName));
