@@ -38,3 +38,6 @@ public sealed class ResourceIdConverter() : ValueConverter<ResourceId, Guid>(id 
 
 /// <summary><see cref="CustomerActivityId"/> と GUID の変換。</summary>
 public sealed class CustomerActivityIdConverter() : ValueConverter<CustomerActivityId, Guid>(id => id.Value, value => new CustomerActivityId(value));
+
+/// <summary><see cref="ExperimentId"/> と GUID の変換。</summary>
+public sealed class ExperimentIdConverter() : ValueConverter<ExperimentId, Guid>(id => id.Value, value => new ExperimentId(value));

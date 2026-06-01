@@ -14,6 +14,7 @@ using MatchOps.Application.Tenancy;
 using MatchOps.Domain.Catalog;
 using MatchOps.Domain.Common;
 using MatchOps.Domain.Customers;
+using MatchOps.Domain.Experiments;
 using MatchOps.Domain.Matching;
 using MatchOps.Domain.Scheduling;
 using MatchOps.Infrastructure.Persistence.Conversions;
@@ -62,6 +63,12 @@ public sealed class MatchOpsDbContext : DbContext
     /// <summary>配信ログ。</summary>
     public DbSet<NotificationLogEntry> NotificationLogs => Set<NotificationLogEntry>();
 
+    /// <summary>実験割当（ホールドアウト）。</summary>
+    public DbSet<ExperimentAssignment> ExperimentAssignments => Set<ExperimentAssignment>();
+
+    /// <summary>コンバージョン（成果）イベント。</summary>
+    public DbSet<ConversionEventEntity> ConversionEvents => Set<ConversionEventEntity>();
+
     /// <summary>クエリフィルタで照合する現在のテナント（未解決時は既定値＝該当なし）。</summary>
     internal TenantId CurrentTenant => _tenantContext.CurrentTenantId ?? default;
 
@@ -76,6 +83,7 @@ public sealed class MatchOpsDbContext : DbContext
         configurationBuilder.Properties<CampaignId>().HaveConversion<CampaignIdConverter>();
         configurationBuilder.Properties<ResourceId>().HaveConversion<ResourceIdConverter>();
         configurationBuilder.Properties<CustomerActivityId>().HaveConversion<CustomerActivityIdConverter>();
+        configurationBuilder.Properties<ExperimentId>().HaveConversion<ExperimentIdConverter>();
     }
 
     /// <inheritdoc />
@@ -93,5 +101,7 @@ public sealed class MatchOpsDbContext : DbContext
         modelBuilder.Entity<AuditLogEntry>().HasQueryFilter(entry => entry.TenantId == CurrentTenant);
         modelBuilder.Entity<OutboxMessageEntity>().HasQueryFilter(message => message.TenantId == CurrentTenant);
         modelBuilder.Entity<NotificationLogEntry>().HasQueryFilter(log => log.TenantId == CurrentTenant);
+        modelBuilder.Entity<ExperimentAssignment>().HasQueryFilter(assignment => assignment.TenantId == CurrentTenant);
+        modelBuilder.Entity<ConversionEventEntity>().HasQueryFilter(conversion => conversion.TenantId == CurrentTenant);
     }
 }

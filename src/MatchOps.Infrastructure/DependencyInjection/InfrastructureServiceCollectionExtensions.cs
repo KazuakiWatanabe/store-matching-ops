@@ -10,10 +10,12 @@
 // -----------------------------------------------------------------------------
 
 using MatchOps.Application.Common;
+using MatchOps.Application.Experiments;
 using MatchOps.Application.Matching;
 using MatchOps.Application.Notifications;
 using MatchOps.Application.Tenancy;
 using MatchOps.Infrastructure.Ai;
+using MatchOps.Infrastructure.Experiments;
 using MatchOps.Infrastructure.Matching;
 using MatchOps.Infrastructure.Notifications;
 using MatchOps.Infrastructure.Persistence;
@@ -70,6 +72,12 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<INotificationSender, LoggingNotificationSender>();
         services.AddScoped<INotificationEligibility, CustomerNotificationEligibility>();
         services.AddScoped<IOutboxDispatcher, OutboxDispatcher>();
+
+        // 効果測定（ホールドアウト割当・リフト集計, ADR-0007）。
+        services.AddScoped<IExperimentAssignmentRepository, EfExperimentAssignmentRepository>();
+        services.AddScoped<IConversionReadStore, EfConversionReadStore>();
+        services.AddScoped<IExperimentService, ExperimentService>();
+        services.AddScoped<IExperimentQueries, ExperimentQueries>();
 
         // マッチングのスコアリング重み・頻度ポリシー（設定）と候補ソース（Phase 1 まで暫定）。
         services.Configure<MatchingOptions>(configuration.GetSection(MatchingOptions.SectionName));
