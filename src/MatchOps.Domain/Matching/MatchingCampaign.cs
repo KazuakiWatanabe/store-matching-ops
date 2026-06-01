@@ -18,9 +18,9 @@ namespace MatchOps.Domain.Matching;
 /// <summary>施策を表す Aggregate Root。</summary>
 public sealed class MatchingCampaign
 {
-    private readonly List<TimeSlotId> _targetSlots;
-    private readonly List<MatchingCandidate> _candidates = [];
     private readonly List<IDomainEvent> _domainEvents = [];
+    private List<TimeSlotId> _targetSlots;
+    private List<MatchingCandidate> _candidates = [];
 
     private MatchingCampaign(CampaignId id, TenantId tenantId, StoreId storeId, List<TimeSlotId> targetSlots)
     {
@@ -30,6 +30,10 @@ public sealed class MatchingCampaign
         _targetSlots = targetSlots;
         Status = CampaignStatus.Draft;
     }
+
+    // ORM（EF Core）による再構成専用のコンストラクタ。状態はバッキングフィールド/プロパティ経由で設定される。
+    // 不変条件はファクトリ (Open) と状態遷移メソッドが担保し、本コンストラクタは新規生成には用いない。
+    private MatchingCampaign() => _targetSlots = [];
 
     /// <summary>施策の一意識別子。</summary>
     public CampaignId Id { get; }
