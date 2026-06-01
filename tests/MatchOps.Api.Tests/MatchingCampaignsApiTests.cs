@@ -72,9 +72,14 @@ public class MatchingCampaignsApiTests
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         Assert.Equal(HttpStatusCode.OK, second.StatusCode);
 
+        // 再生レスポンスは初回と同一本文（表記 = camelCase も一致）。
+        string firstRaw = await first.Content.ReadAsStringAsync();
+        string secondRaw = await second.Content.ReadAsStringAsync();
+        Assert.Equal(firstRaw, secondRaw);
+        Assert.Contains("campaignId", secondRaw);
+
         RunCampaignResponse firstBody = (await first.Content.ReadFromJsonAsync<RunCampaignResponse>())!;
-        RunCampaignResponse secondBody = (await second.Content.ReadFromJsonAsync<RunCampaignResponse>())!;
-        Assert.Equal(firstBody.CampaignId, secondBody.CampaignId);
+        Assert.NotEqual(Guid.Empty, firstBody.CampaignId);
 
         // 副作用は 1 回（施策は 1 件のみ作成される）。
         InMemoryCampaignStore store = factory.Services.GetRequiredService<InMemoryCampaignStore>();
@@ -120,6 +125,41 @@ public class MatchingCampaignsApiTests
         ownerGet.Headers.Add(TenantResolutionMiddleware.TenantHeader, TenantA.ToString());
         HttpResponseMessage ownerResponse = await client.SendAsync(ownerGet);
         Assert.Equal(HttpStatusCode.OK, ownerResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task FullFlow_RunProposeApproveSend_Succeeds()
+    {
+        using var factory = new CampaignApiFactory();
+        using HttpClient client = factory.CreateClient();
+
+        Guid campaignId = await RunAndGetId(client, TenantA);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await Post(client, $"/api/campaigns/{campaignId}/propose")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.NoContent,
+            (await Post(client, $"/api/campaigns/{campaignId}/approve", user: "admin@example.com")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await Post(client, $"/api/campaigns/{campaignId}/send")).StatusCode);
+
+        var resultsGet = new HttpRequestMessage(HttpMethod.Get, $"/api/campaigns/{campaignId}/results");
+        resultsGet.Headers.Add(TenantResolutionMiddleware.TenantHeader, TenantA.ToString());
+        HttpResponseMessage results = await client.SendAsync(resultsGet);
+        Assert.Equal(HttpStatusCode.OK, results.StatusCode);
+        CampaignResultsResponse body = (await results.Content.ReadFromJsonAsync<CampaignResultsResponse>())!;
+        Assert.Equal("Sent", body.Status);
+    }
+
+    private static Task<HttpResponseMessage> Post(HttpClient client, string url, string? user = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Headers.Add(TenantResolutionMiddleware.TenantHeader, TenantA.ToString());
+        request.Headers.Add(IdempotencyFilter.HeaderName, Guid.NewGuid().ToString());
+        if (user is not null)
+        {
+            request.Headers.Add(TenantResolutionMiddleware.UserHeader, user);
+        }
+
+        return client.SendAsync(request);
     }
 
     private static Task<HttpResponseMessage> SendRun(HttpClient client, RunCampaignRequest body, string key)

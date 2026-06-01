@@ -28,6 +28,9 @@ public sealed class IdempotencyFilter : IAsyncActionFilter
     /// <summary>冪等キーを渡すヘッダ名。</summary>
     public const string HeaderName = "Idempotency-Key";
 
+    // 保存・再生するレスポンス本文は MVC（Web 既定 = camelCase）と同じ表記にする。
+    private static readonly JsonSerializerOptions ResponseJson = new(JsonSerializerDefaults.Web);
+
     private readonly IIdempotencyStore _store;
     private readonly IClock _clock;
     private readonly RequestContext _requestContext;
@@ -110,7 +113,7 @@ public sealed class IdempotencyFilter : IAsyncActionFilter
         {
             ObjectResult objectResult => (
                 objectResult.StatusCode ?? StatusCodes.Status200OK,
-                objectResult.Value is null ? null : JsonSerializer.Serialize(objectResult.Value)),
+                objectResult.Value is null ? null : JsonSerializer.Serialize(objectResult.Value, ResponseJson)),
             StatusCodeResult statusCodeResult => (statusCodeResult.StatusCode, null),
             _ => (StatusCodes.Status200OK, null),
         };

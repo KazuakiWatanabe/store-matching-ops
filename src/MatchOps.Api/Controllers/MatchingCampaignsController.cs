@@ -72,6 +72,23 @@ public sealed class MatchingCampaignsController : ControllerBase
             : MapFailure(result);
     }
 
+    /// <summary>AI 提案を生成し施策を提案状態に進める（scored → proposed）。AI へは集約・匿名化データのみ渡す。</summary>
+    /// <param name="id">施策の識別子。</param>
+    /// <param name="cancellationToken">キャンセルトークン。</param>
+    /// <returns>処理結果。</returns>
+    [HttpPost("{id:guid}/propose")]
+    [ServiceFilter(typeof(IdempotencyFilter))]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ApiError), StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> ProposeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        Result result = await _campaignService.ProposeAsync(
+            new ProposeCampaignCommand(new CampaignId(id)), cancellationToken);
+        return result.IsSuccess ? NoContent() : MapFailure(result);
+    }
+
     /// <summary>施策を人手で承認する（proposed → approved, Human-in-the-loop）。</summary>
     /// <param name="id">施策の識別子。</param>
     /// <param name="request">承認リクエスト（承認者は省略可）。</param>

@@ -5,8 +5,7 @@
 // <summary>
 // 管理画面向け API のエントリポイント。
 // 施策の run/approve/send/results を公開し、Idempotency-Key・テナントスコープ・認証スタブを横断適用する。
-// データ系ポート（リポジトリ/候補ソース/ポリシー/AI/Outbox/UnitOfWork）の実装は後続 Stage（Infrastructure / 0.10 / 0.11）で
-// DI 登録する。本 Stage では API 表層と横断的関心事（冪等性・テナント・認証スタブ・OpenAPI）を配線する。
+// Application ユースケースと Infrastructure 実装（永続化・Outbox・ポリシー・候補ソース・AI）を DI 登録する。
 // </summary>
 // -----------------------------------------------------------------------------
 
@@ -14,6 +13,7 @@ using MatchOps.Api.Idempotency;
 using MatchOps.Api.Tenancy;
 using MatchOps.Api.Time;
 using MatchOps.Application.Common;
+using MatchOps.Application.Matching;
 using MatchOps.Application.Tenancy;
 using Scalar.AspNetCore;
 
@@ -35,10 +35,12 @@ builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<RequestCo
 builder.Services.AddSingleton<IIdempotencyStore, InMemoryIdempotencyStore>();
 builder.Services.AddScoped<IdempotencyFilter>();
 
-// 施策ユースケース（IMatchingCampaignService / IMatchingCampaignQueries）と、その依存データ系ポート
-// （リポジトリ/候補ソース/ポリシー/AI/Outbox/UnitOfWork）の実装はまだ存在しないため、本 Stage では登録しない。
-// 実装が揃う後続 Stage（Infrastructure / 0.10 / 0.11）でまとめて DI 登録する。それまで /api/campaigns は 500 を返す。
-// 本 Stage の検証は WebApplicationFactory のテスト host にインメモリ実装を差し込んで行う。
+// Infrastructure 実装（永続化・Outbox・ポリシー・候補ソース・AI＋Matching 委譲アダプタ）を登録する。
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// 施策ユースケース（Application）。依存ポートは Infrastructure が提供する。
+builder.Services.AddScoped<IMatchingCampaignService, MatchingCampaignService>();
+builder.Services.AddScoped<IMatchingCampaignQueries, MatchingCampaignQueries>();
 
 var app = builder.Build();
 

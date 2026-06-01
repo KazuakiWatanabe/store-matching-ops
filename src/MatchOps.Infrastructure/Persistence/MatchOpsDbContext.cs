@@ -14,6 +14,7 @@ using MatchOps.Application.Tenancy;
 using MatchOps.Domain.Catalog;
 using MatchOps.Domain.Common;
 using MatchOps.Domain.Customers;
+using MatchOps.Domain.Matching;
 using MatchOps.Domain.Scheduling;
 using MatchOps.Infrastructure.Persistence.Conversions;
 using Microsoft.EntityFrameworkCore;
@@ -49,8 +50,14 @@ public sealed class MatchOpsDbContext : DbContext
     /// <summary>Offer（メニュー/コース/クーポン）。</summary>
     public DbSet<Offer> Offers => Set<Offer>();
 
+    /// <summary>施策（MatchingCampaign）。</summary>
+    public DbSet<MatchingCampaign> MatchingCampaigns => Set<MatchingCampaign>();
+
     /// <summary>監査ログ。</summary>
     public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
+
+    /// <summary>Outbox 配信メッセージ。</summary>
+    public DbSet<OutboxMessageEntity> OutboxMessages => Set<OutboxMessageEntity>();
 
     /// <summary>クエリフィルタで照合する現在のテナント（未解決時は既定値＝該当なし）。</summary>
     internal TenantId CurrentTenant => _tenantContext.CurrentTenantId ?? default;
@@ -79,6 +86,8 @@ public sealed class MatchOpsDbContext : DbContext
         modelBuilder.Entity<Resource>().HasQueryFilter(resource => resource.TenantId == CurrentTenant);
         modelBuilder.Entity<TimeSlot>().HasQueryFilter(slot => slot.TenantId == CurrentTenant);
         modelBuilder.Entity<Offer>().HasQueryFilter(offer => offer.TenantId == CurrentTenant);
+        modelBuilder.Entity<MatchingCampaign>().HasQueryFilter(campaign => campaign.TenantId == CurrentTenant);
         modelBuilder.Entity<AuditLogEntry>().HasQueryFilter(entry => entry.TenantId == CurrentTenant);
+        modelBuilder.Entity<OutboxMessageEntity>().HasQueryFilter(message => message.TenantId == CurrentTenant);
     }
 }
