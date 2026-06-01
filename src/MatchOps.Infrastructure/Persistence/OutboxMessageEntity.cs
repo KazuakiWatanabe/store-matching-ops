@@ -37,9 +37,15 @@ public sealed class OutboxMessageEntity
     /// <summary>配信文面（差し込み済み。PII を含めない）。</summary>
     public required string Body { get; init; }
 
-    /// <summary>配信状態（queued / sent / failed）。</summary>
+    /// <summary>配信状態（queued / sent / failed / skipped）。</summary>
     public string Status { get; set; } = "queued";
 
     /// <summary>積み込み日時。</summary>
     public required DateTimeOffset CreatedAt { get; init; }
+
+    /// <summary>送信試行回数。</summary>
+    public int AttemptCount { get; set; }
+
+    /// <summary>次回試行可能時刻（指数バックオフ。未設定なら即時試行可）。</summary>
+    public DateTimeOffset? NextAttemptAt { get; set; }
 }

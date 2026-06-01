@@ -11,8 +11,6 @@
 
 using MatchOps.Api.Idempotency;
 using MatchOps.Api.Tenancy;
-using MatchOps.Api.Time;
-using MatchOps.Application.Common;
 using MatchOps.Application.Matching;
 using MatchOps.Application.Tenancy;
 using Scalar.AspNetCore;
@@ -23,9 +21,6 @@ builder.Services.AddControllers();
 
 // OpenAPI ドキュメント生成（/openapi/v1.json）。XML コメント由来の日本語説明を含める。
 builder.Services.AddOpenApi();
-
-// 時刻源（CLAUDE.md §10.4）。
-builder.Services.AddSingleton<IClock, SystemClock>();
 
 // リクエストスコープのテナント・操作者コンテキスト。ITenantContext として DbContext のクエリフィルタにも供給する（ADR-0006）。
 builder.Services.AddScoped<RequestContext>();

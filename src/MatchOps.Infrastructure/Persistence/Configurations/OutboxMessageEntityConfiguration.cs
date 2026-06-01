@@ -31,6 +31,8 @@ public sealed class OutboxMessageEntityConfiguration : IEntityTypeConfiguration<
         builder.Property(message => message.Body).HasColumnName("body").IsRequired();
         builder.Property(message => message.Status).HasColumnName("status").IsRequired();
         builder.Property(message => message.CreatedAt).HasColumnName("created_at");
+        builder.Property(message => message.AttemptCount).HasColumnName("attempt_count");
+        builder.Property(message => message.NextAttemptAt).HasColumnName("next_attempt_at");
 
         builder.HasIndex(message => message.TenantId);
         builder.HasIndex(message => message.Status);

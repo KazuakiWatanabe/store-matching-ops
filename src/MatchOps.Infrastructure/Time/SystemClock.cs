@@ -3,13 +3,14 @@
 // Copyright (c) MatchOps. All rights reserved.
 // </copyright>
 // <summary>
-// システム時計に基づく IClock 実装。本番の時刻源。テストは固定時刻の実装に差し替える（CLAUDE.md §10.4）。
+// システム時計に基づく IClock 実装（本番の時刻源, CLAUDE.md §10.4）。Api・Worker 共通で AddInfrastructure が登録する。
+// テストは固定時刻の実装に差し替える。
 // </summary>
 // -----------------------------------------------------------------------------
 
 using MatchOps.Application.Common;
 
-namespace MatchOps.Api.Time;
+namespace MatchOps.Infrastructure.Time;
 
 /// <summary>システム時計に基づく時刻源。</summary>
 public sealed class SystemClock : IClock
