@@ -10,6 +10,8 @@ status: draft (Phase 0)
 本ドキュメントは `store-matching-ops`（コードネーム `MatchOps`）の**設計方針**を定義する。
 実装規約は `CLAUDE.md`、作業フローは `AGENTS.md`、個別タスクは `docs/codex-instructions/` を参照。
 
+> **実装の現況（as-built）**は `docs/architecture/as-built/`（[アーキテクチャ](as-built/architecture.md) / [DB 仕様・ER 図](as-built/database.md) / [シーケンス図](as-built/sequences.md)）を参照。本書は方針、as-built は Phase 0 完了時点の実装コードに基づく。
+
 ---
 
 ## 1. プロダクトの位置付けと狙い
